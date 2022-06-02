@@ -1,0 +1,8 @@
+{
+  "DB_SERVICES": "43.138.10.10",
+  "DB_PORT": 5432,
+  "DB_USERNAME": "vbadmin",
+  "DB_PWD": "Vast@123",
+  "DB_NAME": "db_citysps",
+  "CITYSPS_SCHEMA": "sc_citysps"
+}
