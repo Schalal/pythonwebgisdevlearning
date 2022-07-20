@@ -74,12 +74,16 @@ function MapboxLayer() {
         )
     }
 
-
+    function download(){
+        window.location.href = baseUrl + "download?id=500"
+    }
     return (
         <div className={"App"}>
             <div className={"mapbox-map"} ref={mapContainer}/>
             <CenterInfo/>
             <FlaskInfo/>
+            <button onClick={download}
+                    style={{position: "absolute", bottom: "250px", right: "100px"}}>下载数据测试</button>
             <button onClick={()=>{history.push('/DeckGlDemo')}}
                     style={{position: "absolute", bottom: "150px", right: "100px"}}>跳转至DeckGLDemo页面</button>
             <button onClick={getFeatureCount} style={{position: "absolute", bottom: "50px", right: "100px"}}>GET

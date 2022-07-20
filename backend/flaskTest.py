@@ -1,6 +1,6 @@
 import json
 import os
-from flask import Flask, request
+from flask import Flask, request, send_file
 from qgis.core import QgsVectorLayer
 import time
 from flask_cors import CORS
@@ -17,6 +17,7 @@ service = "DB_SERVICES"
 port = "DB_PORT"
 databaseName = "DB_NAME"
 schemaName = "sc_citysps"
+roadTableName = "tr_values_20220710"
 gridTableName = "tg_values_20220515"
 
 with open(r"E:\citySystem\TestFlaskReact\dbInfo.json", 'r') as f:
@@ -94,7 +95,7 @@ def test():
 def getGridPolygonGeoJson():
     gridGDF = geopandas.read_file(r"E:\citySystem\2022_spring\weekn\data0512\输入数据\svd\svd_grid_y.shp")
     gridAttributeDF = pandas.read_csv(r"E:\citySystem\2022_spring\weekn\data0512\输出数据\g\g_attribute_2.csv")
-    gridGDF['geometry'] = gridGDF['geometry'].to_crs("EPSG:4326")
+    gridGDF['geometry'] = gridGDF['geometry'].to_crs(epsg=4326)
     gridGDF = geopandas.GeoDataFrame.merge(gridGDF, gridAttributeDF, left_on="Tid", right_on="TID", how="left")
     # gridGDF = geopandas.read_file(r"E:\citySystem\2022_spring\weekn\data0512\输入数据\svd\svd_subdistrict_y.shp")
     # gridGDF['geometry'] = gridGDF['geometry'].to_crs("EPSG:4326")
@@ -108,6 +109,38 @@ def getPngBase64StringFromDB():
     print(pngBase64Code)
     pngPicture.close()
     return json.dumps({"code": pngBase64Code}, ensure_ascii=False)
+
+
+@app.route("/gridCentroid", methods=['POST'])
+def getGridCentroidGeoJson():
+    gridGDF = geopandas.read_file(r"E:\citySystem\BeijingDataExtraction\beijingBadGridCentroid.shp")
+    gridAttributeDF = pandas.read_csv(r"E:\citySystem\2022_spring\weekn\data0512\输出数据\g\g_attribute_2.csv")
+    gridGDF = geopandas.GeoDataFrame.merge(gridGDF, gridAttributeDF, left_on="Tid", right_on="TID", how="left")
+    # gridGDF = geopandas.read_file(r"E:\citySystem\2022_spring\weekn\data0512\输入数据\svd\svd_subdistrict_y.shp")
+    # gridGDF['geometry'] = gridGDF['geometry'].to_crs("EPSG:4326")
+    return gridGDF.to_json()
+
+
+@app.route("/subdistrictLine", methods=['POST'])
+def getSubdistrictLine():
+    lineGDF = geopandas.read_file("E:/citySystem/BeijingDataExtraction/beijingSubdistrictLine.shp")
+    return lineGDF.to_json()
+
+
+@app.route("/download", methods=["POST", "GET"])
+def downloadFile():
+    # sourceId = request.json['id']
+    sourceId = 2403
+    print(sourceId)
+    selectIdSql = "select distinct resvalid from sc_citysps.tr_values_20220710"
+    idDataFrame = pandas.read_sql_query(selectIdSql, mydb)
+    if sourceId not in idDataFrame["resvalid"].values:
+        return 0
+    testSql = f"select * from {schemaName}.{roadTableName} where resvalid={sourceId}"
+    queryDataFrame = pandas.read_sql_query(testSql, mydb)
+    path = fr"E:\citySystem\TestFlaskReact\downloadedFiles/{sourceId}.csv"
+    queryDataFrame.to_csv(path, index=False)
+    return send_file(path, mimetype='text/csv', attachment_filename=f"{sourceId}.csv", as_attachment=True)
 
 
 if __name__ == "__main__":

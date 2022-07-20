@@ -55,5 +55,15 @@ def convertImage():
     print("Successful")
 
 
+def getGridCentroidGeoJson():
+    gridGDF = geopandas.read_file(r"E:\citySystem\2022_spring\weekn\data0512\输入数据\svd\svd_grid_y.shp")
+    gridAttributeDF = pandas.read_csv(r"E:\citySystem\2022_spring\weekn\data0512\输出数据\g\g_attribute_2.csv")
+    gridGDF['geometry'] = gridGDF['geometry'].centroid.to_crs("EPSG:4326")
+    print(gridGDF['geometry'])
+    gridGDF = geopandas.GeoDataFrame.merge(gridGDF, gridAttributeDF, left_on="Tid", right_on="TID", how="left")
+    # gridGDF = geopandas.read_file(r"E:\citySystem\2022_spring\weekn\data0512\输入数据\svd\svd_subdistrict_y.shp")
+    # gridGDF['geometry'] = gridGDF['geometry'].to_crs("EPSG:4326")
+    return gridGDF.to_json()
 # getPngBase64StringFromDB()
 # convertImage()
+getGridCentroidGeoJson()
